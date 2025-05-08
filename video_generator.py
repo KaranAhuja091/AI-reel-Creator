@@ -18,8 +18,8 @@ def generate_video(text, audio_path, duration=10, resolution=(720, 1280)):
     margin = 40
     wrapped_text = textwrap.fill(text, width=40)
 
-    # Calculate text size using textbbox
-    bbox = draw.textbbox((0, 0), wrapped_text, font=font)  # Get the bounding box of the text
+    # Use textbbox to calculate text size
+    bbox = draw.textbbox((0, 0), wrapped_text, font=font)
     text_width = bbox[2] - bbox[0]
     text_height = bbox[3] - bbox[1]
 
