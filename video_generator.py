@@ -14,7 +14,13 @@ def generate_video(texts, output_path='output_video.mp4', duration_per_slide=3):
     bg_color = (0, 0, 0)
     text_color = (255, 255, 255)
 
+    from PIL import ImageFont
+
+    try:
     font = ImageFont.truetype("arial.ttf", 80)
+    except OSError:
+    # fallback to default PIL font if arial is unavailable
+    font = ImageFont.load_default()
 
     image_clips = []
 
