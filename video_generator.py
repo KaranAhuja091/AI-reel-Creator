@@ -1,44 +1,54 @@
-from moviepy.editor import ImageClip, AudioFileClip
 from PIL import Image, ImageDraw, ImageFont
-import textwrap
-import tempfile
+from moviepy.editor import ImageClip
+import os
 
-def generate_video(text, audio_path, duration=10, resolution=(720, 1280)):
-    # Create a blank image with black background
-    img = Image.new('RGB', resolution, color='black')
-    draw = ImageDraw.Draw(img)
+def generate_image_with_text(text, output_path="frame.png"):
+    # Create a blank white image
+    width, height = 720, 1280
+    image = Image.new('RGB', (width, height), color='white')
+    draw = ImageDraw.Draw(image)
 
-    # Load a font (change to path if needed)
+    # Load default font
     try:
-        font = ImageFont.truetype("Arial.ttf", 40)
-    except IOError:
+        font = ImageFont.truetype("arial.ttf", 60)
+    except:
         font = ImageFont.load_default()
 
-    # Wrap text to fit within the image width
-    margin = 40
-    wrapped_text = textwrap.fill(text, width=40)
+    # Word wrap logic (basic)
+    max_width = width - 100
+    lines = []
+    words = text.split()
+    line = ""
+    for word in words:
+        test_line = f"{line} {word}".strip()
+        if draw.textlength(test_line, font=font) <= max_width:
+            line = test_line
+        else:
+            lines.append(line)
+            line = word
+    lines.append(line)
 
-    # Calculate text size using textsize() (old method)
-    text_width, text_height = draw.textsize(wrapped_text, font=font)
+    # Center the text
+    y_text = height // 2 - len(lines) * 30
+    for line in lines:
+        text_width = draw.textlength(line, font=font)
+        x = (width - text_width) // 2
+        draw.text((x, y_text), line, font=font, fill='black')
+        y_text += 70
 
-    # Calculate position for centered text
-    text_x = (resolution[0] - text_width) / 2
-    text_y = (resolution[1] - text_height) / 2
-    draw.text((text_x, text_y), wrapped_text, font=font, fill=(255, 255, 255))
+    image.save(output_path)
+    print(f"Image saved to {output_path}")
 
-    # Save image temporarily
-    temp_img = tempfile.NamedTemporaryFile(delete=False, suffix=".png")
-    img.save(temp_img.name)
+def generate_video_from_image(image_path, video_path="output_video.mp4", duration=5):
+    clip = ImageClip(image_path).set_duration(duration)
+    clip = clip.set_fps(24)
+    clip.write_videofile(video_path, codec="libx264", audio=False)
+    print(f"Video saved to {video_path}")
 
-    # Create video clip from image
-    clip = ImageClip(temp_img.name).set_duration(duration)
+if __name__ == "__main__":
+    text_input = "This is a sample short generated from text using Pillow and MoviePy!"
+    image_file = "frame.png"
+    video_file = "output_video.mp4"
 
-    # Add audio
-    audio = AudioFileClip(audio_path)
-    clip = clip.set_audio(audio).set_duration(audio.duration)
-
-    # Save video
-    output_path = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4").name
-    clip.write_videofile(output_path, fps=24)
-
-    return output_path
+    generate_image_with_text(text_input, image_file)
+    generate_video_from_image(image_file, video_file)
