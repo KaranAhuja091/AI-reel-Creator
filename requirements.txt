@@ -1,5 +1,6 @@
 streamlit
 moviepy
+imageio
 imageio-ffmpeg
 pyttsx3
 sumy
