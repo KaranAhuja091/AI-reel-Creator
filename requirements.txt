@@ -5,3 +5,4 @@ imageio-ffmpeg==0.4.8
 gTTS==2.5.1
 sumy==0.11.0
 nltk==3.8.1
+setuptools
