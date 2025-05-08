@@ -19,11 +19,15 @@ def generate_video(text, audio_path, duration=10, resolution=(720, 1280)):
     # Wrap text to fit within the image width
     margin = 40
     wrapped_text = textwrap.fill(text, width=40)
-    text_size = draw.textsize(wrapped_text, font=font)
+
+    # Calculate text size using textbbox (instead of textsize)
+    bbox = draw.textbbox((0, 0), wrapped_text, font=font)
+    text_width = bbox[2] - bbox[0]
+    text_height = bbox[3] - bbox[1]
 
     # Calculate position for centered text
-    text_x = (resolution[0] - text_size[0]) / 2
-    text_y = (resolution[1] - text_size[1]) / 2
+    text_x = (resolution[0] - text_width) / 2
+    text_y = (resolution[1] - text_height) / 2
     draw.text((text_x, text_y), wrapped_text, font=font, fill=(255, 255, 255))
 
     # Save image temporarily
