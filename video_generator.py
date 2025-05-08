@@ -1,9 +1,7 @@
-# ai-reel-generator/video_generator.py
 from moviepy.editor import ImageClip, AudioFileClip
 from PIL import Image, ImageDraw, ImageFont
 import textwrap
 import tempfile
-import os
 
 def generate_video(text, audio_path, duration=10, resolution=(720, 1280)):
     # Create a blank image with black background
@@ -20,8 +18,8 @@ def generate_video(text, audio_path, duration=10, resolution=(720, 1280)):
     margin = 40
     wrapped_text = textwrap.fill(text, width=40)
 
-    # Calculate text size using textbbox (instead of textsize)
-    bbox = draw.textbbox((0, 0), wrapped_text, font=font)
+    # Calculate text size using textbbox
+    bbox = draw.textbbox((0, 0), wrapped_text, font=font)  # Get the bounding box of the text
     text_width = bbox[2] - bbox[0]
     text_height = bbox[3] - bbox[1]
 
