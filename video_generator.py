@@ -9,22 +9,19 @@ def generate_video(texts, output_path='output_video.mp4', duration_per_slide=3):
     :param output_path: Path to save the final video
     :param duration_per_slide: Duration of each text slide in seconds
     """
-
     W, H = 1080, 1920  # Vertical resolution for Reels/Shorts
     bg_color = (0, 0, 0)
     text_color = (255, 255, 255)
 
-    from PIL import ImageFont
-
     try:
         font = ImageFont.truetype("arial.ttf", 80)
     except OSError:
-    # fallback to default PIL font if arial is unavailable
+        # Fallback to default PIL font if arial is unavailable
         font = ImageFont.load_default()
 
     image_clips = []
 
-    for text in texts:
+    for idx, text in enumerate(texts):
         img = Image.new("RGB", (W, H), color=bg_color)
         draw = ImageDraw.Draw(img)
 
@@ -36,7 +33,7 @@ def generate_video(texts, output_path='output_video.mp4', duration_per_slide=3):
         position = ((W - text_width) // 2, (H - text_height) // 2)
         draw.text(position, text, fill=text_color, font=font)
 
-        img_path = f"/tmp/frame_{texts.index(text)}.png"
+        img_path = f"/tmp/frame_{idx}.png"
         img.save(img_path)
 
         clip = ImageClip(img_path).set_duration(duration_per_slide)
