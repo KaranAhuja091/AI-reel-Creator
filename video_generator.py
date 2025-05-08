@@ -1,27 +1,44 @@
 # ai-reel-generator/video_generator.py
-from moviepy.editor import TextClip, CompositeVideoClip, AudioFileClip
+from moviepy.editor import ImageClip, AudioFileClip
+from PIL import Image, ImageDraw, ImageFont
+import textwrap
 import tempfile
 import os
 
 def generate_video(text, audio_path, duration=10, resolution=(720, 1280)):
+    # Create a blank image with black background
+    img = Image.new('RGB', resolution, color='black')
+    draw = ImageDraw.Draw(img)
+
+    # Load a font (change to path if needed)
     try:
-        # Set font to a common system font
-        clip = TextClip(
-            text,
-            fontsize=40,
-            color='white',
-            bg_color='black',
-            size=resolution,
-            method='caption',
-            font='Arial'  # Make sure Arial is available on your system
-        ).set_duration(duration).set_position('center')
+        font = ImageFont.truetype("Arial.ttf", 40)
+    except IOError:
+        font = ImageFont.load_default()
 
-        audio = AudioFileClip(audio_path)
-        clip = clip.set_audio(audio).set_duration(audio.duration)
+    # Wrap text to fit within the image width
+    margin = 40
+    wrapped_text = textwrap.fill(text, width=40)
+    text_size = draw.textsize(wrapped_text, font=font)
 
-        output_path = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4").name
-        clip.write_videofile(output_path, fps=24)
-        return output_path
+    # Calculate position for centered text
+    text_x = (resolution[0] - text_size[0]) / 2
+    text_y = (resolution[1] - text_size[1]) / 2
+    draw.text((text_x, text_y), wrapped_text, font=font, fill=(255, 255, 255))
 
-    except Exception as e:
-        raise RuntimeError(f"Video generation failed: {str(e)}")
+    # Save image temporarily
+    temp_img = tempfile.NamedTemporaryFile(delete=False, suffix=".png")
+    img.save(temp_img.name)
+
+    # Create video clip from image
+    clip = ImageClip(temp_img.name).set_duration(duration)
+
+    # Add audio
+    audio = AudioFileClip(audio_path)
+    clip = clip.set_audio(audio).set_duration(audio.duration)
+
+    # Save video
+    output_path = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4").name
+    clip.write_videofile(output_path, fps=24)
+
+    return output_path
