@@ -1,0 +1,6 @@
+streamlit
+moviepy
+gTTS
+sumy
+nltk
+imageio-ffmpeg
