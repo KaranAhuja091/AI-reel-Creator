@@ -5,3 +5,4 @@ imageio-ffmpeg
 pyttsx3
 sumy
 nltk
+gTTS
