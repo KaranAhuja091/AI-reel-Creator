@@ -1,54 +1,51 @@
-from PIL import Image, ImageDraw, ImageFont
-from moviepy.editor import ImageClip
+from moviepy.editor import TextClip, CompositeVideoClip, ColorClip
+from PIL import ImageFont, ImageDraw, Image
+import os
 
-def generate_image_with_text(text, output_path="frame.png"):
-    width, height = 720, 1280
-    image = Image.new('RGB', (width, height), color='white')
+# Constants
+WIDTH = 1080
+HEIGHT = 1920
+DURATION = 5  # seconds
+FONT_SIZE = 80
+FONT_COLOR = 'white'
+BACKGROUND_COLOR = (0, 0, 0)
+FPS = 24
+FONT_PATH = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"  # Update for your system if needed
+
+def generate_video(text: str, output_path="output.mp4"):
+    # Create an image with text using PIL
+    image = Image.new("RGB", (WIDTH, HEIGHT), BACKGROUND_COLOR)
     draw = ImageDraw.Draw(image)
 
     try:
-        font = ImageFont.truetype("arial.ttf", 60)
+        font = ImageFont.truetype(FONT_PATH, FONT_SIZE)
     except IOError:
+        print("Could not load font. Using default.")
         font = ImageFont.load_default()
 
-    max_width = width - 100
-    lines = []
-    words = text.split()
-    line = ""
-    for word in words:
-        test_line = f"{line} {word}".strip()
-        if draw.textlength(test_line, font=font) <= max_width:
-            line = test_line
-        else:
-            lines.append(line)
-            line = word
-    if line:
-        lines.append(line)
+    text_width, text_height = draw.textsize(text, font=font)
+    x = (WIDTH - text_width) / 2
+    y = (HEIGHT - text_height) / 2
+    draw.text((x, y), text, fill=FONT_COLOR, font=font)
 
-    total_text_height = len(lines) * 70
-    y_text = (height - total_text_height) // 2
+    # Save image temporarily
+    temp_image_path = "temp_text_image.png"
+    image.save(temp_image_path)
 
-    for line in lines:
-        text_width = draw.textlength(line, font=font)
-        x = (width - text_width) // 2
-        draw.text((x, y_text), line, font=font, fill='black')
-        y_text += 70
+    # Create a video clip from the image
+    image_clip = (ImageClip(temp_image_path)
+                  .set_duration(DURATION)
+                  .set_fps(FPS))
 
-    image.save(output_path)
-    return output_path
+    # Optional: Add background color layer
+    background = ColorClip(size=(WIDTH, HEIGHT), color=BACKGROUND_COLOR, duration=DURATION)
+    final_clip = CompositeVideoClip([background, image_clip])
 
-def generate_video_from_image(image_path, video_path="output_video.mp4", duration=5):
-    clip = ImageClip(image_path).set_duration(duration)
-    clip = clip.set_fps(24)
-    clip.write_videofile(video_path, codec="libx264", audio=False)
-    return video_path
+    # Export the video
+    final_clip.write_videofile(output_path, codec="libx264", fps=FPS)
 
-def generate_video(text, image_path="frame.png", video_path="output_video.mp4", duration=5):
-    img_path = generate_image_with_text(text, image_path)
-    vid_path = generate_video_from_image(img_path, video_path, duration)
-    return vid_path
+    # Clean up
+    os.remove(temp_image_path)
 
-# Optional: for testing directly
 if __name__ == "__main__":
-    sample_text = "This is a test short made from plain text using Pillow and MoviePy."
-    generate_video(sample_text)
+    generate_video("Hello, this is a test reel!")
